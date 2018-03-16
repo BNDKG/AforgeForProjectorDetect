@@ -87,19 +87,31 @@ namespace testaforge
             Bitmap temp4;
             Bitmap temp5;
 
+            Bitmap temp7;
+            Bitmap temp8;
+
+
             Bitmap sourceImage;
 
 
             //新建轮廓过滤器
             CannyEdgeDetector filter = new CannyEdgeDetector();
 
-            //生成蓝绿色过滤器
+            //生成颜色过滤器
             ColorFiltering colorFilter = new ColorFiltering();
-
-            colorFilter.Red = new IntRange(0, 35);
-            colorFilter.Green = new IntRange(45, 140);
-            colorFilter.Blue = new IntRange(45, 140);
-
+            //亮黄
+            /*
+            colorFilter.Red = new IntRange(150, 255);
+            colorFilter.Green = new IntRange(150, 255);
+            colorFilter.Blue = new IntRange(50, 170);
+            //暗黄
+            colorFilter.Red = new IntRange(50, 255);
+            colorFilter.Green = new IntRange(50, 255);
+            colorFilter.Blue = new IntRange(50, 255);
+            */
+            colorFilter.Red = new IntRange(100, 255);
+            colorFilter.Green = new IntRange(100, 255);
+            colorFilter.Blue = new IntRange(0, 100);
 
             //从摄像头中截取图像
             sourceImage = videoSourcePlayer1.GetCurrentVideoFrame();
@@ -120,7 +132,7 @@ namespace testaforge
             pictureBox2.Image = temp2;
 
 
-            //提取一个蓝绿色
+            //提取颜色
 
             temp5 = colorFilter.Apply(temp1);
 
@@ -134,48 +146,207 @@ namespace testaforge
 
             //二值化
 
-            temp4 = new Threshold(50).Apply(temp3);
+            temp4 = new Threshold(10).Apply(temp3);
 
             pictureBox4.Image = temp4;
+            //去噪点
+            temp7=new BlobsFiltering(10, 10, temp4.Width, temp4.Height).Apply(temp4);
 
-            Bitmap temp6 = AForge.Imaging.Image.Clone(temp4, temp1.PixelFormat);
+            pictureBox7.Image = temp7;
+            Bitmap temp6 = AForge.Imaging.Image.Clone(temp7, temp1.PixelFormat);
 
 
-
-            QuadrilateralFinder qf = new QuadrilateralFinder();//获取三角形、四边形角点
-            List<IntPoint> corners = qf.ProcessImage(temp6);
-            /*
-            BlobCounter extractor = new BlobCounter();
-            extractor.FilterBlobs = true;
-            extractor.MinWidth = extractor.MinHeight = 150;
-            extractor.MaxWidth = extractor.MaxHeight = 350;
-            extractor.ProcessImage(temp6); 
-             
-            foreach (Blob blob in extractor.GetObjectsInformation())
+            try
             {
-                // 获取边缘点
-                List<IntPoint> edgePoints = extractor.GetBlobsEdgePoints(blob);
-                // 利用边缘点，在原始图像上找到四角
-                corners = PointsCloud.FindQuadrilateralCorners(edgePoints);
+                QuadrilateralFinder qf = new QuadrilateralFinder();//获取三角形、四边形角点
+                List<IntPoint> corners = qf.ProcessImage(temp6);
+                /*
+                BlobCounter extractor = new BlobCounter();
+                extractor.FilterBlobs = true;
+                extractor.MinWidth = extractor.MinHeight = 150;
+                extractor.MaxWidth = extractor.MaxHeight = 350;
+                extractor.ProcessImage(temp6); 
+
+                foreach (Blob blob in extractor.GetObjectsInformation())
+                {
+                    // 获取边缘点
+                    List<IntPoint> edgePoints = extractor.GetBlobsEdgePoints(blob);
+                    // 利用边缘点，在原始图像上找到四角
+                    corners = PointsCloud.FindQuadrilateralCorners(edgePoints);
+                }
+                */
+
+
+                BitmapData data = temp6.LockBits(new Rectangle(0, 0, temp6.Width, temp6.Height),
+                    ImageLockMode.ReadWrite, temp6.PixelFormat);
+                Drawing.Polygon(data, corners, Color.Red);
+                for (int i = 0; i < corners.Count; i++)
+                {
+                    Drawing.FillRectangle(data,
+                        new Rectangle(corners[i].X - 2, corners[i].Y - 2, 10, 10),
+                        Color.Red);
+                }
+                float juli = (corners[0].Y + corners[3].Y - corners[1].Y - corners[2].Y) / 2;
+
+                label1.Text = ((int)((400 - juli) / 7.5)).ToString();
+                temp6.UnlockBits(data);
             }
-            */
-
-
-            BitmapData data = temp6.LockBits(new Rectangle(0, 0, temp6.Width, temp6.Height),
-                ImageLockMode.ReadWrite, temp6.PixelFormat);
-            Drawing.Polygon(data, corners, Color.Red);
-            for (int i = 0; i < corners.Count; i++)
+            catch
             {
-                Drawing.FillRectangle(data,
-                    new Rectangle(corners[i].X - 2, corners[i].Y - 2, 10, 10),
-                    Color.Red);
-            }
-            float juli = (corners[0].Y + corners[3].Y - corners[1].Y - corners[2].Y) / 2;
 
-            label1.Text = ((int)((400-juli )/7.5)).ToString();
-            temp6.UnlockBits(data);
+            }
 
             pictureBox6.Image = temp6;
+        }
+
+        public List<IntPoint> picback()
+        {
+            Bitmap temp1;
+
+            Bitmap temp2;
+            Bitmap temp3;
+            Bitmap temp4;
+            Bitmap temp5;
+
+            Bitmap temp7;
+            Bitmap temp8;
+
+
+            Bitmap sourceImage;
+
+
+            //新建轮廓过滤器
+            CannyEdgeDetector filter = new CannyEdgeDetector();
+
+            //生成颜色过滤器
+            ColorFiltering colorFilter = new ColorFiltering();
+            //亮黄
+            /*
+            colorFilter.Red = new IntRange(150, 255);
+            colorFilter.Green = new IntRange(150, 255);
+            colorFilter.Blue = new IntRange(50, 170);
+            //暗黄
+            colorFilter.Red = new IntRange(50, 255);
+            colorFilter.Green = new IntRange(50, 255);
+            colorFilter.Blue = new IntRange(50, 255);
+            */
+            colorFilter.Red = new IntRange(100, 255);
+            colorFilter.Green = new IntRange(100, 255);
+            colorFilter.Blue = new IntRange(0, 100);
+
+            //从摄像头中截取图像
+            sourceImage = videoSourcePlayer1.GetCurrentVideoFrame();
+
+            //将原图格式化复制
+            temp1 = AForge.Imaging.Image.Clone(sourceImage, sourceImage.PixelFormat);
+            sourceImage.Dispose();
+            sourceImage = temp1;
+
+
+            //过滤器的使用
+            temp2 = filter.Apply(sourceImage.PixelFormat != PixelFormat.Format8bppIndexed ?
+                Grayscale.CommonAlgorithms.BT709.Apply(sourceImage) : sourceImage);
+
+            //提取颜色
+
+            temp5 = colorFilter.Apply(temp1);
+
+            //灰度转化
+            temp3 = new Grayscale(0.2125, 0.7154, 0.0721).Apply(temp5);
+
+            //二值化
+
+            temp4 = new Threshold(10).Apply(temp3);
+
+            //去噪点
+            temp7 = new BlobsFiltering(10, 10, temp4.Width, temp4.Height).Apply(temp4);
+
+            Bitmap temp6 = AForge.Imaging.Image.Clone(temp7, temp1.PixelFormat);
+
+            try
+            {
+                QuadrilateralFinder qf = new QuadrilateralFinder();//获取三角形、四边形角点
+                List<IntPoint> corners = qf.ProcessImage(temp6);
+                return corners;
+            }
+            catch
+            {
+
+            }
+            QuadrilateralFinder qf2 = new QuadrilateralFinder();//获取三角形、四边形角点
+            List<IntPoint> corners4 = qf2.ProcessImage(temp1);
+            return corners4;
+        }
+
+        public List<IntPoint> picback2()
+        {
+            Bitmap temp1;
+
+            Bitmap temp2;
+            Bitmap temp3;
+            Bitmap temp4;
+            Bitmap temp5;
+
+            Bitmap temp7;
+            Bitmap temp8;
+
+
+            Bitmap sourceImage;
+
+
+            //新建轮廓过滤器
+            CannyEdgeDetector filter = new CannyEdgeDetector();
+
+            //生成颜色过滤器
+            ColorFiltering colorFilter = new ColorFiltering();
+
+            //白
+            colorFilter.Red = new IntRange(50, 255);
+            colorFilter.Green = new IntRange(50, 255);
+            colorFilter.Blue = new IntRange(50, 255);
+
+            //从摄像头中截取图像
+            sourceImage = videoSourcePlayer1.GetCurrentVideoFrame();
+
+            //将原图格式化复制
+            temp1 = AForge.Imaging.Image.Clone(sourceImage, sourceImage.PixelFormat);
+            sourceImage.Dispose();
+            sourceImage = temp1;
+
+
+            //过滤器的使用
+            temp2 = filter.Apply(sourceImage.PixelFormat != PixelFormat.Format8bppIndexed ?
+                Grayscale.CommonAlgorithms.BT709.Apply(sourceImage) : sourceImage);
+
+            //提取颜色
+
+            temp5 = colorFilter.Apply(temp1);
+
+            //灰度转化
+            temp3 = new Grayscale(0.2125, 0.7154, 0.0721).Apply(temp5);
+
+            //二值化
+
+            temp4 = new Threshold(10).Apply(temp3);
+
+            //去噪点
+            temp7 = new BlobsFiltering(10, 10, temp4.Width, temp4.Height).Apply(temp4);
+
+            Bitmap temp6 = AForge.Imaging.Image.Clone(temp7, temp1.PixelFormat);
+
+            try
+            {
+                QuadrilateralFinder qf = new QuadrilateralFinder();//获取三角形、四边形角点
+                List<IntPoint> corners = qf.ProcessImage(temp6);
+                return corners;
+            }
+            catch
+            {
+
+            }
+            QuadrilateralFinder qf2 = new QuadrilateralFinder();//获取三角形、四边形角点
+            List<IntPoint> corners4 = qf2.ProcessImage(temp1);
+            return corners4;
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -185,6 +356,35 @@ namespace testaforge
 
         private void videoSourcePlayer1_Click(object sender, EventArgs e)
         {
+
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            if (videoSource == null)
+                return;
+
+
+
+            List<IntPoint> pic=picback();
+
+            List<IntPoint> pic2=picback2();
+
+            double widthbig = pic2[2].X - pic2[0].X;
+            double widthsmall = pic[1].X - pic[0].X;
+            double cross = pic[0].X - pic2[0].X;
+
+            double final = (widthsmall / widthbig)*1920;
+            double finalx = (cross / widthbig) * 1920;
+
+            System.Drawing.Point bufpoint = this.Location;
+            bufpoint.X = (int)finalx;
+
+
+            this.Location = bufpoint;
+            this.Width = (int)final;
+            int zzzz = 1;
+
 
         }
     }
