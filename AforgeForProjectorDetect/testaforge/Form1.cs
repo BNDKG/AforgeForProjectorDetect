@@ -46,7 +46,8 @@ namespace testaforge
         private void button1_Click(object sender, EventArgs e)
         {
 
-            if (videoSourcePlayer1.IsRunning) {
+            if (videoSourcePlayer1.IsRunning)
+            {
                 return;
             }
 
@@ -97,7 +98,7 @@ namespace testaforge
             {
                 timer1.Start();
             }
-            
+
         }
 
         public void picshow()
@@ -389,14 +390,14 @@ namespace testaforge
 
                 corners = CornersChange(corners, temp6.Size.Width, temp6.Size.Height);
 
-                
+
 
                 Rectangle rect = new Rectangle();
                 rect = Screen.GetWorkingArea(this);
 
 
 
-                string path = OriPath+ "\\SourceInputImage.jpg";
+                string path = OriPath + "\\SourceInputImage.jpg";
 
                 Bitmap bt = new Bitmap(path);
                 //初始化一个和屏幕面积一样大小的bitmap且格式和bt一样
@@ -440,7 +441,7 @@ namespace testaforge
         }
 
 
-        public List<IntPoint> CornersChange(List<IntPoint> CornersInput,int width,int height)
+        public List<IntPoint> CornersChange(List<IntPoint> CornersInput, int width, int height)
         {
             if (CornersInput.Count() != 4)
             {
@@ -449,9 +450,9 @@ namespace testaforge
 
 
             //double[] order = new double[4];
-            List<IntPoint> CornersOutput= new List<IntPoint>();
+            List<IntPoint> CornersOutput = new List<IntPoint>();
 
-            int min = width+ height;
+            int min = width + height;
             int index = 0;
 
             for (int i = 0; i < CornersInput.Count(); i++)
@@ -471,7 +472,7 @@ namespace testaforge
             min = width + height;
             for (int i = 0; i < CornersInput.Count(); i++)
             {
-                int curbuf = (width-CornersInput[i].X) + CornersInput[i].Y;
+                int curbuf = (width - CornersInput[i].X) + CornersInput[i].Y;
                 if (curbuf < min)
                 {
                     min = curbuf;
@@ -485,7 +486,7 @@ namespace testaforge
             min = width + height;
             for (int i = 0; i < CornersInput.Count(); i++)
             {
-                int curbuf = (width - CornersInput[i].X) + (height-CornersInput[i].Y);
+                int curbuf = (width - CornersInput[i].X) + (height - CornersInput[i].Y);
                 if (curbuf < min)
                 {
                     min = curbuf;
@@ -640,6 +641,179 @@ namespace testaforge
             string pathsave = OriPath + "\\Qchangeout2.jpg";
             //bitmap111.Save(pathsave);
 
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            string path = OriPath + "\\test.jpg";
+            string pathoutput2 = OriPath + "\\testoutput2.jpg";
+            string pathoutput3 = OriPath + "\\testoutput3.jpg";
+            string pathoutput4 = OriPath + "\\testoutput4.jpg";
+            string pathoutput5 = OriPath + "\\testoutput5.jpg";
+            string pathoutput6 = OriPath + "\\testoutput6.jpg";
+            string pathoutput7 = OriPath + "\\testoutput7.jpg";
+
+
+            Bitmap image = new Bitmap(path);
+
+            // 普通最近领算法
+            ResizeNearestNeighbor filter = new ResizeNearestNeighbor(4000, 3000);
+            // 双线性插值
+            ResizeBicubic filter2 = new ResizeBicubic(4000, 3000);
+            // 双三次插值
+            ResizeBilinear filter3 = new ResizeBilinear(4000, 3000);
+
+            // create filter - rotate for 30 degrees keeping original image size
+            RotateNearestNeighbor filter4 = new RotateNearestNeighbor(30, true);
+
+            RotateBilinear filter5 = new RotateBilinear(30, true);
+
+            RotateBicubic filter6 = new RotateBicubic(30, true);
+
+            // apply the filter
+            Bitmap newImage = filter.Apply(image);
+            newImage.Save(pathoutput2);
+
+            newImage = filter2.Apply(image);
+            newImage.Save(pathoutput3);
+
+            newImage = filter3.Apply(image);
+            newImage.Save(pathoutput4);
+
+            newImage = filter4.Apply(image);
+            newImage.Save(pathoutput5);
+
+            newImage = filter5.Apply(image);
+            newImage.Save(pathoutput6);
+
+            newImage = filter6.Apply(image);
+            newImage.Save(pathoutput7);
+        }
+
+        private void pictureBox8_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+            PointF aaa = new PointF(2, 4);
+            PointF bbb = new PointF(6, 1);
+            PointF ccc = new PointF(1, 1);
+            PointF ddd = new PointF(5, 5);
+
+            PointF testsdd = GetIntersection(aaa, bbb, ccc, ddd);
+
+            PointF easdad = new PointF(6, 1);
+        }
+        public static PointF GetIntersection(PointF lineFirstStar, PointF lineFirstEnd, PointF lineSecondStar, PointF lineSecondEnd)
+        {
+            /*
+             * L1，L2都存在斜率的情况：
+             * 直线方程L1: ( y - y1 ) / ( y2 - y1 ) = ( x - x1 ) / ( x2 - x1 ) 
+             * => y = [ ( y2 - y1 ) / ( x2 - x1 ) ]( x - x1 ) + y1
+             * 令 a = ( y2 - y1 ) / ( x2 - x1 )
+             * 有 y = a * x - a * x1 + y1   .........1
+             * 直线方程L2: ( y - y3 ) / ( y4 - y3 ) = ( x - x3 ) / ( x4 - x3 )
+             * 令 b = ( y4 - y3 ) / ( x4 - x3 )
+             * 有 y = b * x - b * x3 + y3 ..........2
+             * 
+             * 如果 a = b，则两直线平等，否则， 联解方程 1,2，得:
+             * x = ( a * x1 - b * x3 - y1 + y3 ) / ( a - b )
+             * y = a * x - a * x1 + y1
+             * 
+             * L1存在斜率, L2平行Y轴的情况：
+             * x = x3
+             * y = a * x3 - a * x1 + y1
+             * 
+             * L1 平行Y轴，L2存在斜率的情况：
+             * x = x1
+             * y = b * x - b * x3 + y3
+             * 
+             * L1与L2都平行Y轴的情况：
+             * 如果 x1 = x3，那么L1与L2重合，否则平等
+             * 
+            */
+            float a = 0, b = 0;
+            int state = 0;
+            if (lineFirstStar.X != lineFirstEnd.X)
+            {
+                a = (lineFirstEnd.Y - lineFirstStar.Y) / (lineFirstEnd.X - lineFirstStar.X);
+                state |= 1;
+            }
+            if (lineSecondStar.X != lineSecondEnd.X)
+            {
+                b = (lineSecondEnd.Y - lineSecondStar.Y) / (lineSecondEnd.X - lineSecondStar.X);
+                state |= 2;
+            }
+            switch (state)
+            {
+                case 0: //L1与L2都平行Y轴
+                    {
+                        if (lineFirstStar.X == lineSecondStar.X)
+                        {
+                            //throw new Exception("两条直线互相重合，且平行于Y轴，无法计算交点。");
+                            return new PointF(0, 0);
+                        }
+                        else
+                        {
+                            //throw new Exception("两条直线互相平行，且平行于Y轴，无法计算交点。");
+                            return new PointF(0, 0);
+                        }
+                    }
+                case 1: //L1存在斜率, L2平行Y轴
+                    {
+                        float x = lineSecondStar.X;
+                        float y = (lineFirstStar.X - x) * (-a) + lineFirstStar.Y;
+                        return new PointF(x, y);
+                    }
+                case 2: //L1 平行Y轴，L2存在斜率
+                    {
+                        float x = lineFirstStar.X;
+                        //网上有相似代码的，这一处是错误的。你可以对比case 1 的逻辑 进行分析
+                        //源code:lineSecondStar * x + lineSecondStar * lineSecondStar.X + p3.Y;
+                        float y = (lineSecondStar.X - x) * (-b) + lineSecondStar.Y;
+                        return new PointF(x, y);
+                    }
+                case 3: //L1，L2都存在斜率
+                    {
+                        if (a == b)
+                        {
+                            // throw new Exception("两条直线平行或重合，无法计算交点。");
+                            return new PointF(0, 0);
+                        }
+                        float x = (a * lineFirstStar.X - b * lineSecondStar.X - lineFirstStar.Y + lineSecondStar.Y) / (a - b);
+                        float y = a * x - a * lineFirstStar.X + lineFirstStar.Y;
+                        return new PointF(x, y);
+                    }
+            }
+            // throw new Exception("不可能发生的情况");
+            return new PointF(0, 0);
+        }
+
+        private void button9_Click(object sender, EventArgs e)
+        {
+            if (videoSource == null)
+                return;
+
+            picread();
+        }
+        public void picread()
+        {
+            Bitmap temp1;
+
+            Bitmap sourceImage;
+
+            //从摄像头中截取图像
+            sourceImage = videoSourcePlayer1.GetCurrentVideoFrame();
+
+            //将原图格式化复制
+            temp1 = AForge.Imaging.Image.Clone(sourceImage, sourceImage.PixelFormat);
+            sourceImage.Dispose();
+            sourceImage = temp1;
+
+            string path = OriPath + "\\SourceOutputImage.jpg";
+            temp1.Save(path);
         }
     }
 }
